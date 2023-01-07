@@ -37,7 +37,21 @@ public class Meeple : MonoBehaviour {
     public Carryable CurrentItem() {
         return _currentItem;
     }
-    
+
+    public List<Vector3Int> EnqueuedTillingPositions() {
+        var result = new List<Vector3Int>();
+        foreach (var task in _tasks) {
+            if (task is TillGround tillGroundTask) {
+                var position = new Vector3Int(Mathf.RoundToInt(tillGroundTask.TargetPosition.x),
+                    Mathf.RoundToInt(tillGroundTask.TargetPosition.y),
+                    Mathf.RoundToInt(tillGroundTask.TargetPosition.z)
+                );
+                result.Add(position);
+            }
+        }
+        return result;
+    }
+
     private void TryStartNextTask() {
         if (_currentTask == null && _tasks.Any()) {
             _currentTask = _tasks.Dequeue();

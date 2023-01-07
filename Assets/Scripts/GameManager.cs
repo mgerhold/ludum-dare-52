@@ -1,0 +1,27 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class GameManager : MonoBehaviour {
+    public List<Meeple> Meeples { get; private set; } = new();
+    [SerializeField] private Transform _initialMeepleSpawn = null;
+
+    public static GameManager Instance { get; private set; }
+
+    private void Awake() {
+        if (Instance != null && Instance != this) {
+            Destroy(gameObject);
+        }
+        Instance = this;
+    }
+
+    private void Start() {
+        SpawnMeeple(_initialMeepleSpawn.position);
+    }
+
+    public void SpawnMeeple(Vector3 position) {
+        Meeples.Add(GameObject.Instantiate(PrefabManager.Instance.meeplePrefab, position,
+            Quaternion.identity).GetComponentInChildren<Meeple>());
+    }
+}

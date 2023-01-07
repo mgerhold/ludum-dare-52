@@ -6,7 +6,6 @@ using UnityEngine;
 using UnityEngine.AI;
 
 public class InputManager : MonoBehaviour {
-    [SerializeField] private GameObject tilledGroundPrefab = null;
     private const float GotoDistanceThreshold = 0.5f;
     private const float MaxNavMeshOffset = 1.0f;
     private Meeple _selection = null;
@@ -48,28 +47,51 @@ public class InputManager : MonoBehaviour {
         return InputMode.Normal;
     }
 
+    private void TryDestroyTilledGroundPreview() {
+        if (tilledGroundPreview != null) {
+            GameObject.Destroy(tilledGroundPreview);
+            tilledGroundPreview = null;
+        }
+    }
+
     void Update() {
         bool shouldShowTilledGroundPreview = false;
         if (_mode == InputMode.Tilling) {
             var ground = ScriptByRaycast<Soil>(out var hit);
             if (ground != null) {
                 shouldShowTilledGroundPreview = true;
-                if (tilledGroundPreview == null) {
-                    tilledGroundPreview = GameObject.Instantiate(tilledGroundPrefab, hit.point, Quaternion.identity);
-                    var colliders = tilledGroundPreview.GetComponentsInChildren<Collider>();
-                    foreach (var collider in colliders) {
-                        GameObject.Destroy(collider);
+                var gridPosition = new Vector3Int(Mathf.RoundToInt(hit.point.x), 0,
+                    Mathf.RoundToInt(hit.point.z));
+                foreach (var meeple in GameManager.Instance.Meeples) {
+                    foreach (var position in meeple.EnqueuedTillingPositions()) {
+                        if (position == gridPosition) {
+                            shouldShowTilledGroundPreview = false;
+                            break;
+                        }
+                    }
+                    if (!shouldShowTilledGroundPreview) {
+                        break;
                     }
                 }
-                var gridPosition = new Vector3(Mathf.Round(hit.point.x + 0.5f) - 0.5f, 0f,
-                    Mathf.Round(hit.point.z + 0.5f) - 0.5f);
-                tilledGroundPreview.transform.position = gridPosition;
+
+                if (shouldShowTilledGroundPreview) {
+                    if (tilledGroundPreview == null) {
+                        tilledGroundPreview = GameObject.Instantiate(
+                            PrefabManager.Instance.tilledGroundPrefab,
+                            hit.point,
+                            Quaternion.identity);
+                        var colliders = tilledGroundPreview.GetComponentsInChildren<Collider>();
+                        foreach (var collider in colliders) {
+                            GameObject.Destroy(collider);
+                        }
+                    }
+                    tilledGroundPreview.transform.position = gridPosition;
+                }
             }
         }
 
-        if (!shouldShowTilledGroundPreview && tilledGroundPreview != null) {
-            GameObject.Destroy(tilledGroundPreview);
-            tilledGroundPreview = null;
+        if (!shouldShowTilledGroundPreview) {
+            TryDestroyTilledGroundPreview();
         }
 
         if (Input.GetMouseButtonDown(0)) {
@@ -82,20 +104,31 @@ public class InputManager : MonoBehaviour {
                 Debug.Log("Cleared selection");
             }
         } else if (HasSelection() && Input.GetMouseButtonDown(1)) {
-            var taskTarget = ScriptByRaycast<TaskTarget>(out var hit);
-            if (taskTarget != null) {
-                if (taskTarget is Ground) {
-                    _selection.EnqueueTask(new Goto(_selection, GetValidTargetPosition(hit.point),
-                        GotoDistanceThreshold));
-                    Debug.Log("Moving so a point on the ground");
-                } else if (taskTarget is Carryable carryable) {
-                    Debug.Log("Trying to pickup object");
-                    // first walk to the target
-                    _selection.EnqueueTask(new Goto(_selection, GetValidTargetPosition(taskTarget.transform.position),
-                        GotoDistanceThreshold));
-                    // pickup item
-                    _selection.EnqueueTask(new Pickup(_selection, carryable));
-                }
+            switch (_mode) {
+                case InputMode.Normal:
+                    HandleMovementAndPickupInput();
+                    break;
+                case InputMode.Tilling:
+                    if (tilledGroundPreview == null) {
+                        // preview is invisible => normal movement
+                        HandleMovementAndPickupInput();
+                    } else {
+                        // place down tilled ground
+                        // 1. cache position and destroy preview
+                        var position = tilledGroundPreview.transform.position;
+                        TryDestroyTilledGroundPreview();
+
+                        // 2. move to the location
+                        _selection.EnqueueTask(new Goto(_selection, position, GotoDistanceThreshold));
+
+                        // 3. till ground
+                        _selection.EnqueueTask(new TillGround(_selection,
+                            Vector3Int.RoundToInt(position)
+                        ));
+
+                        Debug.Log($"Creating task for tilling as positio {Vector3Int.RoundToInt(position)}");
+                    }
+                    break;
             }
         }
 
@@ -104,5 +137,24 @@ public class InputManager : MonoBehaviour {
             Debug.Log($"Changing mode from {_mode} to {newInputMode}");
         }
         _mode = newInputMode;
+    }
+
+    private void HandleMovementAndPickupInput() {
+        var taskTarget = ScriptByRaycast<TaskTarget>(out var hit);
+        if (taskTarget != null) {
+            if (taskTarget is Ground) {
+                _selection.EnqueueTask(new Goto(_selection, GetValidTargetPosition(hit.point),
+                    GotoDistanceThreshold));
+                Debug.Log("Moving so a point on the ground");
+            } else if (taskTarget is Carryable carryable) {
+                Debug.Log("Trying to pickup object");
+                // first walk to the target
+                _selection.EnqueueTask(new Goto(_selection,
+                    GetValidTargetPosition(taskTarget.transform.position),
+                    GotoDistanceThreshold));
+                // pickup item
+                _selection.EnqueueTask(new Pickup(_selection, carryable));
+            }
+        }
     }
 }
