@@ -6,6 +6,7 @@ using UnityEngine;
 public class Plant : TaskTarget {
     private float _growth = 0f;
     public float GrowthRate { get; set; } = 0.1f;
+    public PlantType Type { get; set; } = PlantType.Invalid;
     private const float MinScaling = 0.2f;
 
     private void Start() {

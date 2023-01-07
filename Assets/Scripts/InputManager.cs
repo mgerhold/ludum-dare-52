@@ -77,12 +77,12 @@ public class InputManager : MonoBehaviour {
         if (HasSelection() && Input.GetMouseButtonDown(1)) {
             switch (_mode) {
                 case InputMode.Normal:
-                    HandleMovementAndPickup();
+                    HandleBasicActivities();
                     break;
                 case InputMode.Tilling:
                     if (tilledGroundPreview is null) {
                         // preview is invisible => normal movement
-                        HandleMovementAndPickup();
+                        HandleBasicActivities();
                     } else {
                         // place down tilled ground
                         // 1. cache position and destroy preview
@@ -141,7 +141,7 @@ public class InputManager : MonoBehaviour {
                         }
                     }
                     if (!issuedPlantErrand) {
-                        HandleMovementAndPickup();
+                        HandleBasicActivities();
                     }
                     break;
                 case InputMode.IngredientTransporting:
@@ -155,7 +155,7 @@ public class InputManager : MonoBehaviour {
                         // 2. drop off ingredients
                         _selection.EnqueueTask(new DropOff(_selection, ingredientDropOff));
                     } else {
-                        HandleMovementAndPickup();
+                        HandleBasicActivities();
                     }
                     break;
             }
@@ -222,7 +222,10 @@ public class InputManager : MonoBehaviour {
         }
     }
 
-    private void HandleMovementAndPickup() {
+    /**
+     * This methods handles moving, picking up things, cooking etc.
+     */
+    private void HandleBasicActivities() {
         var taskTargets = ScriptsByRaycast<TaskTarget>(out var hit);
         foreach (var taskTarget in taskTargets) {
             if (taskTarget is Ground) {
@@ -240,6 +243,13 @@ public class InputManager : MonoBehaviour {
                 // pickup item
                 _selection.EnqueueTask(new Pickup(_selection, carryable));
                 break;
+            }
+            if (taskTarget is Pot pot) {
+                // 1. walk to the pot
+                _selection.EnqueueTask(new Goto(_selection, GetValidTargetPosition(pot.transform.position),
+                    GotoDistanceThreshold));
+                // 2. cook
+                _selection.EnqueueTask(new Cook(_selection, pot));
             }
         }
     }
