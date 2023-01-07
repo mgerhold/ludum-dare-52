@@ -10,6 +10,7 @@ public class PrefabManager : SerializedMonoBehaviour {
     public GameObject tilledGroundPrefab = null;
     public Dictionary<PlantType, GameObject> plantPrefabs = null;
     public GameObject[] dishPrefabs = null;
+    public GameObject[] customerPrefabs = null;
 
     public static PrefabManager Instance { get; private set; }
     
