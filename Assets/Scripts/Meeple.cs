@@ -26,7 +26,7 @@ public class Meeple : MonoBehaviour {
     }
 
     public void DropCurrentItem() {
-        if (_currentItem != null) {
+        if (_currentItem is not null) {
             _currentItem.transform.parent = null;
             var oldPosition = _currentItem.transform.position;
             oldPosition.y = 0f;
@@ -34,19 +34,21 @@ public class Meeple : MonoBehaviour {
         }
     }
 
+    public void DestroyCurrentItem() {
+        Debug.Assert(_currentItem is not null);
+        GameObject.Destroy(_currentItem.gameObject);
+        _currentItem = null;
+    }
+
     public Carryable CurrentItem() {
         return _currentItem;
     }
 
-    public List<Vector3Int> EnqueuedTillingPositions() {
-        var result = new List<Vector3Int>();
+    public List<T> GetTasksOfType<T>() where T: Task {
+        var result = new List<T>();
         foreach (var task in _tasks) {
-            if (task is TillGround tillGroundTask) {
-                var position = new Vector3Int(Mathf.RoundToInt(tillGroundTask.TargetPosition.x),
-                    Mathf.RoundToInt(tillGroundTask.TargetPosition.y),
-                    Mathf.RoundToInt(tillGroundTask.TargetPosition.z)
-                );
-                result.Add(position);
+            if (task is T t) {
+                result.Add(t);
             }
         }
         return result;

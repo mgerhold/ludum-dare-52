@@ -30,14 +30,14 @@ public class InputManager : MonoBehaviour {
         return default;
     }
 
-    private bool HasSelection() => _selection != null;
+    private bool HasSelection() => _selection is not null;
 
     private InputMode DetermineInputMode() {
         if (!HasSelection()) {
             return InputMode.Normal;
         }
         var item = _selection.CurrentItem();
-        if (item == null) {
+        if (item is null) {
             return InputMode.Normal;
         }
         if (item is Hoe) {
@@ -51,7 +51,7 @@ public class InputManager : MonoBehaviour {
     }
 
     private void TryDestroyTilledGroundPreview() {
-        if (tilledGroundPreview != null) {
+        if (tilledGroundPreview is not null) {
             GameObject.Destroy(tilledGroundPreview);
             tilledGroundPreview = null;
         }
@@ -68,7 +68,7 @@ public class InputManager : MonoBehaviour {
                     HandleMovementAndPickup();
                     break;
                 case InputMode.Tilling:
-                    if (tilledGroundPreview == null) {
+                    if (tilledGroundPreview is null) {
                         // preview is invisible => normal movement
                         HandleMovementAndPickup();
                     } else {
@@ -84,6 +84,52 @@ public class InputManager : MonoBehaviour {
                         _selection.EnqueueTask(new TillGround(_selection,
                             Vector3Int.RoundToInt(position)
                         ));
+                    }
+                    break;
+                case InputMode.Seeding:
+                    bool issuedPlantErrand = false;
+                    var tilledGround = ScriptByRaycast<TilledGround>(out _);
+                    if (tilledGround is not null) {
+                        if (tilledGround.Plant is null) {
+                            if (_selection.CurrentItem() is Seeds seeds) {
+                                bool canSeedHere = true;
+                                foreach (var meeple in GameManager.Instance.Meeples) {
+                                    foreach (var task in meeple.GetTasksOfType<PlantErrand>()) {
+                                        if (task.TargetGround == tilledGround) {
+                                            canSeedHere = false;
+                                            break;
+                                        }
+                                    }
+                                    if (!canSeedHere) {
+                                        break;
+                                    }
+                                }
+
+                                if (!canSeedHere) {
+                                    // todo: show error message
+                                    Debug.Log("This tilled ground is already queued to be planted");
+                                } else {
+                                    var plantType = seeds.plantType;
+                                    Debug.Log("Adding Task to place down seeds");
+                                    // 1. walk to tilled ground tile
+                                    _selection.EnqueueTask(new Goto(_selection,
+                                        tilledGround.transform.position,
+                                        GotoDistanceThreshold));
+                                    // 2. plant the plant
+                                    _selection.EnqueueTask(new PlantErrand(_selection, tilledGround,
+                                        plantType));
+                                    issuedPlantErrand = true;
+                                }
+                            } else {
+                                Debug.LogError("Meeple does not carry seeds");
+                                return;
+                            }
+                        } else {
+                            // todo: show error message - tilled ground already occupied
+                        }
+                    }
+                    if (!issuedPlantErrand) {
+                        HandleMovementAndPickup();
                     }
                     break;
             }
@@ -113,13 +159,13 @@ public class InputManager : MonoBehaviour {
         bool shouldShowTilledGroundPreview = false;
         if (_mode == InputMode.Tilling) {
             var ground = ScriptByRaycast<Soil>(out var hit);
-            if (ground != null) {
+            if (ground is not null) {
                 shouldShowTilledGroundPreview = true;
                 var gridPosition = new Vector3Int(Mathf.RoundToInt(hit.point.x), 0,
                     Mathf.RoundToInt(hit.point.z));
                 foreach (var meeple in GameManager.Instance.Meeples) {
-                    foreach (var position in meeple.EnqueuedTillingPositions()) {
-                        if (position == gridPosition) {
+                    foreach (var task in meeple.GetTasksOfType<TillGround>()) {
+                        if (task.TargetPosition == gridPosition) {
                             shouldShowTilledGroundPreview = false;
                             break;
                         }
