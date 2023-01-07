@@ -2,11 +2,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class Plant : TaskTarget {
+    public float growthRate = 0.5f;
+    public PlantType type = PlantType.Invalid;
+    
     private float _growth = 0f;
-    public float GrowthRate { get; set; } = 0.5f;
-    public PlantType Type { get; set; } = PlantType.Invalid;
     private const float MinScaling = 0.2f;
 
     private void Start() {
@@ -16,7 +18,7 @@ public class Plant : TaskTarget {
     }
 
     private void Update() {
-        _growth = Mathf.Min(_growth + GrowthRate * Time.deltaTime, 1f);
+        _growth = Mathf.Min(_growth + growthRate * Time.deltaTime, 1f);
         transform.localScale = Vector3.one * Mathf.Lerp(MinScaling, 1f, _growth);
     }
 

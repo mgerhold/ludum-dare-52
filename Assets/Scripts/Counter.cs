@@ -54,7 +54,13 @@ public class Counter : TaskTarget {
         _dishLocationStatuses[index] = DishLocationStatus.Occupied;
         dish.transform.position = location.transform.position;
         _dishes[index] = dish;
+        // notify the order queue manager that a new dish has arrived
+        OrderQueueManager.Instance.OnDishDelivered(dish);
+        
         dish.PickedUpCallback = carryable => {
+            // notify the order queue manager that a dish has been taken away
+            OrderQueueManager.Instance.OnDishTakenAway(_dishes[index]);
+            
             _dishLocationStatuses[index] = DishLocationStatus.Free;
             _dishes[index] = null;
             carryable.PickedUpCallback = null;

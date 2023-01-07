@@ -74,7 +74,7 @@ public class IngredientDropOff : MonoBehaviour {
                 Debug.LogError("This carryable doesn't seem to be a plant");
                 return null;
             }
-            result.Add(plant.Type);
+            result.Add(plant.type);
             GameObject.Destroy(item.gameObject);
         }
         droppedOffItems = new Carryable[dropOffLocations.Length];

@@ -7,7 +7,6 @@ using UnityEngine.AI;
 
 public class InputManager : MonoBehaviour {
     private const float GotoDistanceThreshold = 0.5f;
-    private const float MaxNavMeshOffset = 5.0f;
     private Meeple _selection = null;
     private InputMode _mode = InputMode.Normal;
     private GameObject tilledGroundPreview = null;
@@ -27,16 +26,6 @@ public class InputManager : MonoBehaviour {
             return hit.collider.gameObject.GetComponentsInParent<T>();
         }
         return null;
-    }
-
-    private Vector3 GetValidTargetPosition(Vector3 maybeInvalidTargetPosition) {
-        var positionOnGround = maybeInvalidTargetPosition;
-        positionOnGround.y = 0f;
-        if (NavMesh.SamplePosition(positionOnGround, out var hit, MaxNavMeshOffset, NavMesh.AllAreas)) {
-            return hit.position;
-        }
-        Debug.Assert(false, "unreachable");
-        return default;
     }
 
     private bool HasSelection() => _selection is not null;
@@ -153,7 +142,7 @@ public class InputManager : MonoBehaviour {
                         Debug.Log("Trying to take ingredients to a drop off");
                         // 1. walk to ingredient drop off
                         _selection.EnqueueTask(new Goto(_selection,
-                            GetValidTargetPosition(ingredientDropOff.transform.position),
+                            Utilities.GetValidTargetPosition(ingredientDropOff.transform.position),
                             GotoDistanceThreshold));
                         // 2. drop off ingredients
                         _selection.EnqueueTask(new DropOff(_selection, ingredientDropOff));
@@ -172,7 +161,7 @@ public class InputManager : MonoBehaviour {
                             Debug.Log("enqueuing dish delivering task");
                             // 1. walk to the dish location
                             _selection.EnqueueTask(new Goto(_selection,
-                                GetValidTargetPosition(dishLocation.Value.transform.position),
+                                Utilities.GetValidTargetPosition(dishLocation.Value.transform.position),
                                 GotoDistanceThreshold));
                             // 2. deliver dish
                             _selection.EnqueueTask(new DeliverDish(_selection, dishLocation.Value));
@@ -255,7 +244,7 @@ public class InputManager : MonoBehaviour {
         }
         foreach (var taskTarget in taskTargets) {
             if (taskTarget is Ground) {
-                _selection.EnqueueTask(new Goto(_selection, GetValidTargetPosition(hit.point),
+                _selection.EnqueueTask(new Goto(_selection, Utilities.GetValidTargetPosition(hit.point),
                     GotoDistanceThreshold));
                 Debug.Log("Moving so a point on the ground");
                 break;
@@ -264,7 +253,7 @@ public class InputManager : MonoBehaviour {
                 Debug.Log("Trying to pickup object");
                 // first walk to the target
                 _selection.EnqueueTask(new Goto(_selection,
-                    GetValidTargetPosition(taskTarget.transform.position),
+                    Utilities.GetValidTargetPosition(taskTarget.transform.position),
                     GotoDistanceThreshold));
                 // pickup item
                 _selection.EnqueueTask(new Pickup(_selection, carryable));
@@ -272,7 +261,8 @@ public class InputManager : MonoBehaviour {
             }
             if (taskTarget is Pot pot) {
                 // 1. walk to the pot
-                _selection.EnqueueTask(new Goto(_selection, GetValidTargetPosition(pot.transform.position),
+                _selection.EnqueueTask(new Goto(_selection,
+                    Utilities.GetValidTargetPosition(pot.transform.position),
                     GotoDistanceThreshold));
                 // 2. cook
                 _selection.EnqueueTask(new Cook(_selection, pot));

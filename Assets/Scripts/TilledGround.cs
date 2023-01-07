@@ -11,6 +11,7 @@ public class TilledGround : Ground {
             transform.position, Quaternion.identity);
         Plant = plantObject.GetComponentInChildren<Plant>();
         Debug.Assert(Plant is not null);
+        Plant.type = plantType;
     }
 
     private void Update() {
