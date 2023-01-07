@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Tasks;
@@ -5,9 +6,12 @@ using UnityEngine;
 using UnityEngine.AI;
 
 public class InputManager : MonoBehaviour {
-    private Meeple _selection = null;
+    [SerializeField] private GameObject tilledGroundPrefab = null;
     private const float GotoDistanceThreshold = 0.5f;
     private const float MaxNavMeshOffset = 1.0f;
+    private Meeple _selection = null;
+    private InputMode _mode = InputMode.Normal;
+    private GameObject tilledGroundPreview = null;
 
     private T ScriptByRaycast<T>(out RaycastHit hit) where T : MonoBehaviour {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -27,7 +31,47 @@ public class InputManager : MonoBehaviour {
         return default;
     }
 
+    private bool HasSelection() => _selection != null;
+
+    private InputMode DetermineInputMode() {
+        if (!HasSelection()) {
+            return InputMode.Normal;
+        }
+        var item = _selection.CurrentItem();
+        if (item == null) {
+            return InputMode.Normal;
+        }
+        if (item is Hoe) {
+            return InputMode.Tilling;
+        }
+        // todo: watering can
+        return InputMode.Normal;
+    }
+
     void Update() {
+        bool shouldShowTilledGroundPreview = false;
+        if (_mode == InputMode.Tilling) {
+            var ground = ScriptByRaycast<Soil>(out var hit);
+            if (ground != null) {
+                shouldShowTilledGroundPreview = true;
+                if (tilledGroundPreview == null) {
+                    tilledGroundPreview = GameObject.Instantiate(tilledGroundPrefab, hit.point, Quaternion.identity);
+                    var colliders = tilledGroundPreview.GetComponentsInChildren<Collider>();
+                    foreach (var collider in colliders) {
+                        GameObject.Destroy(collider);
+                    }
+                }
+                var gridPosition = new Vector3(Mathf.Round(hit.point.x + 0.5f) - 0.5f, 0f,
+                    Mathf.Round(hit.point.z + 0.5f) - 0.5f);
+                tilledGroundPreview.transform.position = gridPosition;
+            }
+        }
+
+        if (!shouldShowTilledGroundPreview && tilledGroundPreview != null) {
+            GameObject.Destroy(tilledGroundPreview);
+            tilledGroundPreview = null;
+        }
+
         if (Input.GetMouseButtonDown(0)) {
             var meeple = ScriptByRaycast<Meeple>(out _);
             if (meeple != null) {
@@ -37,7 +81,7 @@ public class InputManager : MonoBehaviour {
                 _selection = null;
                 Debug.Log("Cleared selection");
             }
-        } else if (_selection != null && Input.GetMouseButtonDown(1)) {
+        } else if (HasSelection() && Input.GetMouseButtonDown(1)) {
             var taskTarget = ScriptByRaycast<TaskTarget>(out var hit);
             if (taskTarget != null) {
                 if (taskTarget is Ground) {
@@ -54,5 +98,11 @@ public class InputManager : MonoBehaviour {
                 }
             }
         }
+
+        var newInputMode = DetermineInputMode();
+        if (newInputMode != _mode) {
+            Debug.Log($"Changing mode from {_mode} to {newInputMode}");
+        }
+        _mode = newInputMode;
     }
 }

@@ -8,7 +8,7 @@ using UnityEngine;
 public class Meeple : MonoBehaviour {
     private readonly Queue<Task> _tasks = new();
     private Task _currentTask = null;
-    private Carryable _carriedItem = null;
+    private Carryable _currentItem = null;
     [SerializeField] private Transform _itemTransform = null;
 
     public void EnqueueTask(Task task) {
@@ -17,21 +17,25 @@ public class Meeple : MonoBehaviour {
     }
 
     public void PickupItem(Carryable carryable) {
-        if (_carriedItem != null) {
+        if (_currentItem != null) {
             DropCurrentItem();
         }
-        _carriedItem = carryable;
+        _currentItem = carryable;
         carryable.transform.position = _itemTransform.position;
         carryable.transform.parent = _itemTransform;
     }
 
     public void DropCurrentItem() {
-        if (_carriedItem != null) {
-            _carriedItem.transform.parent = null;
-            var oldPosition = _carriedItem.transform.position;
+        if (_currentItem != null) {
+            _currentItem.transform.parent = null;
+            var oldPosition = _currentItem.transform.position;
             oldPosition.y = 0f;
-            _carriedItem.transform.position = oldPosition;
+            _currentItem.transform.position = oldPosition;
         }
+    }
+
+    public Carryable CurrentItem() {
+        return _currentItem;
     }
     
     private void TryStartNextTask() {
