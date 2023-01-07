@@ -1,16 +1,19 @@
 ﻿namespace Tasks {
     public class Pickup : Task {
-        private Carryable _target;
+        private readonly Carryable _target;
+        private bool _wasExecuted = false;
+        
         public Pickup(Meeple meeple, Carryable target) : base(meeple) {
             _target = target;
         }
 
         public override void Execute() {
-            throw new System.NotImplementedException();
+            meeple.PickupItem(_target);
+            _wasExecuted = true;
         }
 
         public override bool HasFinished() {
-            throw new System.NotImplementedException();
+            return _wasExecuted;
         }
     }
 }

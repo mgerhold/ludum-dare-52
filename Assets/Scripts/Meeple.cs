@@ -8,12 +8,32 @@ using UnityEngine;
 public class Meeple : MonoBehaviour {
     private readonly Queue<Task> _tasks = new();
     private Task _currentTask = null;
+    private Carryable _carriedItem = null;
+    [SerializeField] private Transform _itemTransform = null;
 
     public void EnqueueTask(Task task) {
         _tasks.Enqueue(task);
         TryStartNextTask();
     }
 
+    public void PickupItem(Carryable carryable) {
+        if (_carriedItem != null) {
+            DropCurrentItem();
+        }
+        _carriedItem = carryable;
+        carryable.transform.position = _itemTransform.position;
+        carryable.transform.parent = _itemTransform;
+    }
+
+    public void DropCurrentItem() {
+        if (_carriedItem != null) {
+            _carriedItem.transform.parent = null;
+            var oldPosition = _carriedItem.transform.position;
+            oldPosition.y = 0f;
+            _carriedItem.transform.position = oldPosition;
+        }
+    }
+    
     private void TryStartNextTask() {
         if (_currentTask == null && _tasks.Any()) {
             _currentTask = _tasks.Dequeue();

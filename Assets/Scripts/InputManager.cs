@@ -18,7 +18,9 @@ public class InputManager : MonoBehaviour {
     }
 
     private Vector3 GetValidTargetPosition(Vector3 maybeInvalidTargetPosition) {
-        if (NavMesh.SamplePosition(maybeInvalidTargetPosition, out var hit, MaxNavMeshOffset, NavMesh.AllAreas)) {
+        var positionOnGround = maybeInvalidTargetPosition;
+        positionOnGround.y = 0f;
+        if (NavMesh.SamplePosition(positionOnGround, out var hit, MaxNavMeshOffset, NavMesh.AllAreas)) {
             return hit.position;
         }
         Debug.Assert(false, "unreachable");
@@ -42,10 +44,13 @@ public class InputManager : MonoBehaviour {
                     _selection.EnqueueTask(new Goto(_selection, GetValidTargetPosition(hit.point),
                         GotoDistanceThreshold));
                     Debug.Log("Moving so a point on the ground");
-                } else {
+                } else if (taskTarget is Carryable carryable) {
+                    Debug.Log("Trying to pickup object");
+                    // first walk to the target
                     _selection.EnqueueTask(new Goto(_selection, GetValidTargetPosition(taskTarget.transform.position),
                         GotoDistanceThreshold));
-                    Debug.Log("Moving to a target object");
+                    // pickup item
+                    _selection.EnqueueTask(new Pickup(_selection, carryable));
                 }
             }
         }
