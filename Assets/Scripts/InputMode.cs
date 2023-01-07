@@ -2,4 +2,5 @@
     Normal,
     Tilling,
     Watering,
+    Seeding,
 }

@@ -43,6 +43,9 @@ public class InputManager : MonoBehaviour {
         if (item is Hoe) {
             return InputMode.Tilling;
         }
+        if (item is Seeds) {
+            return InputMode.Seeding;
+        }
         // todo: watering can
         return InputMode.Normal;
     }
@@ -55,6 +58,58 @@ public class InputManager : MonoBehaviour {
     }
 
     void Update() {
+        HandleTillingPreview();
+
+        HandleSelection();
+
+        if (HasSelection() && Input.GetMouseButtonDown(1)) {
+            switch (_mode) {
+                case InputMode.Normal:
+                    HandleMovementAndPickup();
+                    break;
+                case InputMode.Tilling:
+                    if (tilledGroundPreview == null) {
+                        // preview is invisible => normal movement
+                        HandleMovementAndPickup();
+                    } else {
+                        // place down tilled ground
+                        // 1. cache position and destroy preview
+                        var position = tilledGroundPreview.transform.position;
+                        TryDestroyTilledGroundPreview();
+
+                        // 2. move to the location
+                        _selection.EnqueueTask(new Goto(_selection, position, GotoDistanceThreshold));
+
+                        // 3. till ground
+                        _selection.EnqueueTask(new TillGround(_selection,
+                            Vector3Int.RoundToInt(position)
+                        ));
+                    }
+                    break;
+            }
+        }
+
+        var newInputMode = DetermineInputMode();
+        if (newInputMode != _mode) {
+            Debug.Log($"Changing mode from {_mode} to {newInputMode}");
+        }
+        _mode = newInputMode;
+    }
+
+    private void HandleSelection() {
+        if (Input.GetMouseButtonDown(0)) {
+            var meeple = ScriptByRaycast<Meeple>(out _);
+            if (meeple != null) {
+                _selection = meeple;
+                Debug.Log("Selected");
+            } else {
+                _selection = null;
+                Debug.Log("Cleared selection");
+            }
+        }
+    }
+
+    private void HandleTillingPreview() {
         bool shouldShowTilledGroundPreview = false;
         if (_mode == InputMode.Tilling) {
             var ground = ScriptByRaycast<Soil>(out var hit);
@@ -93,53 +148,9 @@ public class InputManager : MonoBehaviour {
         if (!shouldShowTilledGroundPreview) {
             TryDestroyTilledGroundPreview();
         }
-
-        if (Input.GetMouseButtonDown(0)) {
-            var meeple = ScriptByRaycast<Meeple>(out _);
-            if (meeple != null) {
-                _selection = meeple;
-                Debug.Log("Selected");
-            } else {
-                _selection = null;
-                Debug.Log("Cleared selection");
-            }
-        } else if (HasSelection() && Input.GetMouseButtonDown(1)) {
-            switch (_mode) {
-                case InputMode.Normal:
-                    HandleMovementAndPickupInput();
-                    break;
-                case InputMode.Tilling:
-                    if (tilledGroundPreview == null) {
-                        // preview is invisible => normal movement
-                        HandleMovementAndPickupInput();
-                    } else {
-                        // place down tilled ground
-                        // 1. cache position and destroy preview
-                        var position = tilledGroundPreview.transform.position;
-                        TryDestroyTilledGroundPreview();
-
-                        // 2. move to the location
-                        _selection.EnqueueTask(new Goto(_selection, position, GotoDistanceThreshold));
-
-                        // 3. till ground
-                        _selection.EnqueueTask(new TillGround(_selection,
-                            Vector3Int.RoundToInt(position)
-                        ));
-
-                        Debug.Log($"Creating task for tilling as positio {Vector3Int.RoundToInt(position)}");
-                    }
-                    break;
-            }
-        }
-
-        var newInputMode = DetermineInputMode();
-        if (newInputMode != _mode) {
-            Debug.Log($"Changing mode from {_mode} to {newInputMode}");
-        }
-        _mode = newInputMode;
     }
 
-    private void HandleMovementAndPickupInput() {
+    private void HandleMovementAndPickup() {
         var taskTarget = ScriptByRaycast<TaskTarget>(out var hit);
         if (taskTarget != null) {
             if (taskTarget is Ground) {
