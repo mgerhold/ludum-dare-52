@@ -28,7 +28,12 @@ public class Order {
                 return false;
             }
         }
-        return true;
+        return providedIngredients.Count == 0;
+    }
+
+    public long MoneyValue() {
+        var elapsedTime = Time.time - spawnTime;
+        return ingredients.Count * 5 + Mathf.RoundToInt(60f * Mathf.Pow(0.8f, elapsedTime));
     }
 }
 
@@ -112,7 +117,9 @@ public class OrderQueueManager : MonoBehaviour {
                     order.targetDish.OnPickedUp();
                     order.targetDish = null;
                     order.fulfilled = true;
-                    // todo: money, rating...
+                    
+                    // todo: rating...
+                    MoneyManager.Instance.Money += order.MoneyValue();
                     var leaveLocation =
                         customerLeaveLocations[UnityEngine.Random.Range(0, customerLeaveLocations.Length)];
                     order.customer.GetComponent<NavMeshAgent>().SetDestination(leaveLocation.position);

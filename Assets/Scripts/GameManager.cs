@@ -6,6 +6,7 @@ using UnityEngine;
 public class GameManager : MonoBehaviour {
     public List<Meeple> Meeples { get; private set; } = new();
     [SerializeField] private Transform _initialMeepleSpawn = null;
+    private const int NumStartingSeeds = 4;
 
     public static GameManager Instance { get; private set; }
 
@@ -18,6 +19,9 @@ public class GameManager : MonoBehaviour {
 
     private void Start() {
         SpawnMeeple(_initialMeepleSpawn.position);
+        for (int i = 0; i < NumStartingSeeds; ++i) {
+            SeedsManager.Instance.SpawnSeeds(PlantType.Wheat);
+        }
     }
 
     public void SpawnMeeple(Vector3 position) {
