@@ -342,6 +342,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4940437012842609925}
   - component: {fileID: 2007428643600981093}
+  - component: {fileID: 6683843580907136420}
   m_Layer: 0
   m_Name: WheatPlant
   m_TagString: Untagged
@@ -381,6 +382,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 615fc8efc6d5fbb4a9748f5ea4030676, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!65 &6683843580907136420
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4940437012842609926}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.37242687, y: 0.8168781, z: 0.3471401}
+  m_Center: {x: -0.017241001, y: 0.40189928, z: -0.000000044703484}
 --- !u!1 &4940437013597876130
 GameObject:
   m_ObjectHideFlags: 0

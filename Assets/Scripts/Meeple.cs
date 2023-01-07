@@ -34,6 +34,14 @@ public class Meeple : MonoBehaviour {
         }
     }
 
+    public Carryable DetachCurrentItem() {
+        Debug.Assert(_currentItem is not null);
+        _currentItem.transform.parent = null;
+        var result = _currentItem;
+        _currentItem = null;
+        return result;
+    }
+
     public void DestroyCurrentItem() {
         Debug.Assert(_currentItem is not null);
         GameObject.Destroy(_currentItem.gameObject);
@@ -44,7 +52,7 @@ public class Meeple : MonoBehaviour {
         return _currentItem;
     }
 
-    public List<T> GetTasksOfType<T>() where T: Task {
+    public List<T> GetTasksOfType<T>() where T : Task {
         var result = new List<T>();
         foreach (var task in _tasks) {
             if (task is T t) {

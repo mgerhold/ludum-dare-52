@@ -2,7 +2,4 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TaskTarget : MonoBehaviour
-{
-    
-}
+public class TaskTarget : MonoBehaviour { }

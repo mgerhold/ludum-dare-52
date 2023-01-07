@@ -21,10 +21,7 @@ namespace Tasks {
             meeple.DestroyCurrentItem();
 
             // place down the plant
-            var plantObject = GameObject.Instantiate(PrefabManager.Instance.plantPrefabs[PlantType],
-                TargetGround.transform.position, Quaternion.identity);
-            TargetGround.Plant = plantObject.GetComponentInChildren<Plant>();
-            Debug.Assert(TargetGround.Plant is not null);
+            TargetGround.PlantSeed(PlantType);
             _hasExecuted = true;
         }
 

@@ -7,7 +7,7 @@ using UnityEngine.AI;
 
 public class InputManager : MonoBehaviour {
     private const float GotoDistanceThreshold = 0.5f;
-    private const float MaxNavMeshOffset = 1.0f;
+    private const float MaxNavMeshOffset = 5.0f;
     private Meeple _selection = null;
     private InputMode _mode = InputMode.Normal;
     private GameObject tilledGroundPreview = null;
@@ -15,7 +15,16 @@ public class InputManager : MonoBehaviour {
     private T ScriptByRaycast<T>(out RaycastHit hit) where T : MonoBehaviour {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out hit)) {
+            Debug.Assert(hit.collider.gameObject.GetComponentsInParent<T>().Length <= 1);
             return hit.collider.gameObject.GetComponentInParent<T>();
+        }
+        return null;
+    }
+
+    private T[] ScriptsByRaycast<T>(out RaycastHit hit) where T : MonoBehaviour {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if (Physics.Raycast(ray, out hit)) {
+            return hit.collider.gameObject.GetComponentsInParent<T>();
         }
         return null;
     }
@@ -45,6 +54,9 @@ public class InputManager : MonoBehaviour {
         }
         if (item is Seeds) {
             return InputMode.Seeding;
+        }
+        if (item.GetComponent<Plant>() is not null) {
+            return InputMode.IngredientTransporting;
         }
         // todo: watering can
         return InputMode.Normal;
@@ -132,6 +144,20 @@ public class InputManager : MonoBehaviour {
                         HandleMovementAndPickup();
                     }
                     break;
+                case InputMode.IngredientTransporting:
+                    var ingredientDropOff = ScriptByRaycast<IngredientDropOff>(out _);
+                    if (ingredientDropOff is not null) {
+                        Debug.Log("Trying to take ingredients to a drop off");
+                        // 1. walk to ingredient drop off
+                        _selection.EnqueueTask(new Goto(_selection,
+                            GetValidTargetPosition(ingredientDropOff.transform.position),
+                            GotoDistanceThreshold));
+                        // 2. drop off ingredients
+                        _selection.EnqueueTask(new DropOff(_selection, ingredientDropOff));
+                    } else {
+                        HandleMovementAndPickup();
+                    }
+                    break;
             }
         }
 
@@ -197,13 +223,15 @@ public class InputManager : MonoBehaviour {
     }
 
     private void HandleMovementAndPickup() {
-        var taskTarget = ScriptByRaycast<TaskTarget>(out var hit);
-        if (taskTarget != null) {
+        var taskTargets = ScriptsByRaycast<TaskTarget>(out var hit);
+        foreach (var taskTarget in taskTargets) {
             if (taskTarget is Ground) {
                 _selection.EnqueueTask(new Goto(_selection, GetValidTargetPosition(hit.point),
                     GotoDistanceThreshold));
                 Debug.Log("Moving so a point on the ground");
-            } else if (taskTarget is Carryable carryable) {
+                break;
+            }
+            if (taskTarget is Carryable carryable) {
                 Debug.Log("Trying to pickup object");
                 // first walk to the target
                 _selection.EnqueueTask(new Goto(_selection,
@@ -211,6 +239,7 @@ public class InputManager : MonoBehaviour {
                     GotoDistanceThreshold));
                 // pickup item
                 _selection.EnqueueTask(new Pickup(_selection, carryable));
+                break;
             }
         }
     }
