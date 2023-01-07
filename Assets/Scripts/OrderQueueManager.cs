@@ -33,6 +33,7 @@ public class Order {
 
     public long MoneyValue() {
         var elapsedTime = Time.time - spawnTime;
+        Debug.LogWarning($"elapsed time {elapsedTime}");
         return ingredients.Count * 5 + Mathf.RoundToInt(60f * Mathf.Pow(0.8f, elapsedTime));
     }
 }
@@ -42,6 +43,7 @@ public class OrderQueueManager : MonoBehaviour {
     [SerializeField] private Transform[] customerLeaveLocations = null;
     [SerializeField] private Transform customerWaitLocation = null;
     private List<Dish> _deliveredDishes = new();
+    private float timeOfNextOrder;
 
     private const float DishDistanceThreshold = 1f;
 
@@ -57,10 +59,13 @@ public class OrderQueueManager : MonoBehaviour {
     }
 
     private void Start() {
-        Orders.Add(new Order {
-            spawnTime = Time.time + 2f,
-            ingredients = new List<PlantType> { PlantType.Wheat /*, PlantType.Wheat */ },
-        });
+        SetTimeOfNextOrder();
+    }
+
+    private void SetTimeOfNextOrder() {
+        var spawnInterval = 20f * Mathf.Pow(0.994f, Time.time);
+        var actualInterval = spawnInterval + UnityEngine.Random.Range(-4f, 4f);
+        timeOfNextOrder = Time.time + actualInterval;
     }
 
     public void OnDishDelivered(Dish dish) {
@@ -79,11 +84,35 @@ public class OrderQueueManager : MonoBehaviour {
         Debug.Assert(successfullyRemoved);
     }
 
+    private static List<PlantType> GetRandomIngredients() {
+        var maxNumIngredients = (int)(Time.time / 20f);
+        var numIngredients = UnityEngine.Random.Range(1, Math.Min(2, maxNumIngredients + 1));
+        if (maxNumIngredients <= 1) {
+            return new List<PlantType> { PlantType.Wheat };
+        }
+        var result = new List<PlantType>();
+        var ingredients = (PlantType[])Enum.GetValues(typeof(PlantType));
+        for (int i = 0; i < numIngredients; ++i) {
+            var ingredient = ingredients[UnityEngine.Random.Range(0, ingredients.Length - 1)];
+            result.Add(ingredient);
+        }
+        return result;
+    }
+
     private void Update() {
+        if (Time.time >= timeOfNextOrder) {
+            Orders.Add(new Order {
+                spawnTime = Time.time + 15f,
+                ingredients = GetRandomIngredients(),
+            });
+            SetTimeOfNextOrder();
+        }
+
+        var ordersToDelete = new List<Order>();
+
         foreach (var order in Orders) {
-            var remainingTime = order.spawnTime - Time.time;
             var isCustomerOnMap = order.customer is not null;
-            if (remainingTime <= 0f && !isCustomerOnMap) {
+            if (Time.time >= order.spawnTime && !isCustomerOnMap) {
                 // spawn customer
                 var prefab = PrefabManager.Instance.customerPrefabs[
                     UnityEngine.Random.Range(0, PrefabManager.Instance.customerPrefabs.Length)];
@@ -117,17 +146,18 @@ public class OrderQueueManager : MonoBehaviour {
                     order.targetDish.OnPickedUp();
                     order.targetDish = null;
                     order.fulfilled = true;
-                    
+
                     // todo: rating...
                     MoneyManager.Instance.Money += order.MoneyValue();
                     var leaveLocation =
                         customerLeaveLocations[UnityEngine.Random.Range(0, customerLeaveLocations.Length)];
                     order.customer.GetComponent<NavMeshAgent>().SetDestination(leaveLocation.position);
+                    ordersToDelete.Add(order);
                 }
             }
 
             var dishTargetKnown = order.targetDish is not null;
-            if (dishTargetKnown) {
+            if (order.fulfilled || !isCustomerOnMap || dishTargetKnown) {
                 continue;
             }
             foreach (var dish in _deliveredDishes) {
@@ -138,6 +168,11 @@ public class OrderQueueManager : MonoBehaviour {
                     break;
                 }
             }
+        }
+
+        foreach (var orderToDelete in ordersToDelete) {
+            var successfullyRemoved = Orders.Remove(orderToDelete);
+            Debug.Assert(successfullyRemoved);
         }
     }
 }

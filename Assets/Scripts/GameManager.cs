@@ -22,6 +22,7 @@ public class GameManager : MonoBehaviour {
         for (int i = 0; i < NumStartingSeeds; ++i) {
             SeedsManager.Instance.SpawnSeeds(PlantType.Wheat);
         }
+        MoneyManager.Instance.Money = 0;
     }
 
     public void SpawnMeeple(Vector3 position) {

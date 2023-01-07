@@ -16,7 +16,7 @@ public class SeedShopUi : MonoBehaviour {
                 continue;
             }
             var price = prices.prices[plantTypes[i]];
-            var affordable = MoneyManager.Instance.Money >= price;
+            var affordable = !SeedsManager.Instance.IsFull() && MoneyManager.Instance.Money >= price;
             seedShopButtons[i].SetActive(affordable);
             var text = seedShopButtons[i].GetComponentInChildren<TextMeshProUGUI>();
             if (affordable) {
