@@ -4,4 +4,5 @@
     Watering,
     Seeding,
     IngredientTransporting,
+    DishTransporting,
 }

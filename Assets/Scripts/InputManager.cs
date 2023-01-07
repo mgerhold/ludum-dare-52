@@ -55,6 +55,9 @@ public class InputManager : MonoBehaviour {
         if (item is Seeds) {
             return InputMode.Seeding;
         }
+        if (item is Dish) {
+            return InputMode.DishTransporting;
+        }
         if (item.GetComponent<Plant>() is not null) {
             return InputMode.IngredientTransporting;
         }
@@ -158,6 +161,26 @@ public class InputManager : MonoBehaviour {
                         HandleBasicActivities();
                     }
                     break;
+                case InputMode.DishTransporting:
+                    var counter = ScriptByRaycast<Counter>(out _);
+                    if (counter is not null) {
+                        var dishLocation = counter.ReserveDishLocation();
+                        if (dishLocation is null) {
+                            // todo: show error message
+                            Debug.LogError("counter is fully occupied or reserved");
+                        } else {
+                            Debug.Log("enqueuing dish delivering task");
+                            // 1. walk to the dish location
+                            _selection.EnqueueTask(new Goto(_selection,
+                                GetValidTargetPosition(dishLocation.Value.transform.position),
+                                GotoDistanceThreshold));
+                            // 2. deliver dish
+                            _selection.EnqueueTask(new DeliverDish(_selection, dishLocation.Value));
+                        }
+                    } else {
+                        HandleBasicActivities();
+                    }
+                    break;
             }
         }
 
@@ -227,6 +250,9 @@ public class InputManager : MonoBehaviour {
      */
     private void HandleBasicActivities() {
         var taskTargets = ScriptsByRaycast<TaskTarget>(out var hit);
+        if (taskTargets is null) {
+            return;
+        }
         foreach (var taskTarget in taskTargets) {
             if (taskTarget is Ground) {
                 _selection.EnqueueTask(new Goto(_selection, GetValidTargetPosition(hit.point),
