@@ -15,9 +15,6 @@ public class SeedsManager : MonoBehaviour {
             Destroy(gameObject);
         }
         Instance = this;
-    }
-
-    private void Start() {
         seeds = new Seeds[seedSpawns.Length];
     }
 
