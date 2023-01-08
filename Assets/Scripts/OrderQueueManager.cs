@@ -14,8 +14,8 @@ public class OrderQueueManager : MonoBehaviour {
     private float timeOfNextOrder;
 
     private const float DishDistanceThreshold = 1f;
-    private const float MinMaxWaitTime = 10f;
-    private const float MaxMaxWaitTime = 30f;
+    private const float MinMaxWaitTime = 20f;
+    private const float MaxMaxWaitTime = 45f;
 
     public List<Order> Orders { get; private set; } = new();
 
@@ -33,7 +33,7 @@ public class OrderQueueManager : MonoBehaviour {
     }
 
     private void SetTimeOfNextOrder() {
-        var spawnInterval = 20f * Mathf.Pow(0.994f, Time.time);
+        var spawnInterval = 30f * Mathf.Pow(0.999f, Time.time);
         var actualInterval = spawnInterval + UnityEngine.Random.Range(-4f, 4f);
         timeOfNextOrder = Time.time + actualInterval;
     }
@@ -55,8 +55,8 @@ public class OrderQueueManager : MonoBehaviour {
     }
 
     private static List<PlantType> GetRandomIngredients() {
-        var maxNumIngredients = (int)(Time.time / 20f);
-        var numIngredients = UnityEngine.Random.Range(1, Math.Min(2, maxNumIngredients + 1));
+        var maxNumIngredients = (int)(Time.time / 70f);
+        var numIngredients = UnityEngine.Random.Range(1, Math.Clamp(maxNumIngredients + 1, 2, 4));
         if (maxNumIngredients <= 1) {
             return new List<PlantType> { PlantType.Wheat };
         }
@@ -157,10 +157,12 @@ public class OrderQueueManager : MonoBehaviour {
 
     private void TryCreateNewOrder() {
         if (Time.time >= timeOfNextOrder) {
+            var ingredients = GetRandomIngredients();
             Orders.Add(new Order {
-                spawnTime = Time.time + 15f,
-                ingredients = GetRandomIngredients(),
-                maxWaitTime = UnityEngine.Random.Range(MinMaxWaitTime, MaxMaxWaitTime),
+                spawnTime = Time.time + 25f,
+                ingredients = ingredients,
+                maxWaitTime = UnityEngine.Random.Range(MinMaxWaitTime * ingredients.Count,
+                    MaxMaxWaitTime * ingredients.Count),
             });
             SetTimeOfNextOrder();
         }
