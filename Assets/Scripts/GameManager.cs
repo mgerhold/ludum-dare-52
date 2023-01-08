@@ -32,8 +32,7 @@ public class GameManager : MonoBehaviour {
 
     private void Update() {
         if (FrustratedCustomersManager.Instance.GameOver) {
-            Debug.LogError("GAME OVER");
-            // todo: show message
+            GameOver.Instance.Show();
         }
     }
 }

@@ -19,14 +19,12 @@ namespace Tasks {
 
         protected override bool CanStartExecution() {
             if (!_pot.CanCook()) {
-                // todo: show error message
-                Debug.LogError("spawn location is blocked");
+                MessagePanelManager.Instance.ShowMessage("Deliver the last dish before cooking a new one!");
                 return false;
             }
 
             if (_dropOff.IsEmpty()) {
-                // todo: show error message
-                Debug.LogError("cannot cook without ingredients");
+                MessagePanelManager.Instance.ShowMessage("You cannot cook without ingredients!");
                 return false;
             }
 

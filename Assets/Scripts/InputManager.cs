@@ -110,8 +110,8 @@ public class InputManager : MonoBehaviour {
                                 }
 
                                 if (!canSeedHere) {
-                                    // todo: show error message
-                                    Debug.Log("This tilled ground is already queued to be planted");
+                                    MessagePanelManager.Instance.ShowMessage(
+                                        "This tilled ground is already queued to be planted");
                                 } else {
                                     var plantType = seeds.plantType;
                                     Debug.Log("Adding Task to place down seeds");
@@ -129,7 +129,7 @@ public class InputManager : MonoBehaviour {
                                 return;
                             }
                         } else {
-                            // todo: show error message - tilled ground already occupied
+                            MessagePanelManager.Instance.ShowMessage("Tilled ground already occupied.");
                         }
                     }
                     if (!issuedPlantErrand) {
@@ -155,8 +155,7 @@ public class InputManager : MonoBehaviour {
                     if (counter is not null) {
                         var dishLocation = counter.ReserveDishLocation();
                         if (dishLocation is null) {
-                            // todo: show error message
-                            Debug.LogError("counter is fully occupied or reserved");
+                            MessagePanelManager.Instance.ShowMessage("No free space for another dish.");
                         } else {
                             Debug.Log("enqueuing dish delivering task");
                             // 1. walk to the dish location
