@@ -23,6 +23,7 @@ public class TilledGround : Ground {
                 Debug.Log("Tilled ground is now empty");
                 Plant = null;
                 plant.PickedUpCallback = null;
+                GameObject.Destroy(gameObject);
             };
         }
     }
