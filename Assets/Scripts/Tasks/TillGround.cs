@@ -9,6 +9,7 @@ namespace Tasks {
         protected override void OnFinish() {
             GameObject.Instantiate(PrefabManager.Instance.tilledGroundPrefab, TargetPosition,
                 Quaternion.identity);
+            TutorialManager.Instance.OnTillingCompleted();
         }
 
         public Vector3Int TargetPosition { get; }

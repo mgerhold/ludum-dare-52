@@ -26,6 +26,7 @@ namespace Tasks {
         protected override void OnFinish() {
             // place down the plant
             TargetGround.PlantSeed(PlantType);
+            TutorialManager.Instance.OnPlacedSeeds(TargetGround);
         }
     }
 }

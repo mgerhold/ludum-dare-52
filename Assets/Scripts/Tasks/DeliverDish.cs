@@ -16,6 +16,7 @@ namespace Tasks {
             var dish = meeple.DetachCurrentItem().GetComponent<Dish>();
             _dishLocation.counter.DeliverDish(_dishLocation, dish);
             _hasDelivered = true;
+            TutorialManager.Instance.OnDishDelivered();
         }
 
         public override bool HasFinished() {

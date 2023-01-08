@@ -10,12 +10,20 @@ public class ProgressBar : MonoBehaviour {
 
     public float Value {
         get => progressBarFrontImage.fillAmount;
-        set => progressBarFrontImage.fillAmount = value;
+        set {
+            Visible = true;
+            progressBarFrontImage.fillAmount = value;
+        }
     }
 
     public bool Visible {
-        get => canvas.activeSelf;
-        set => canvas.SetActive(value);
+        get => canvas is not null && canvas.activeSelf;
+
+        set {
+            if (canvas is not null) {
+                canvas.SetActive(value);
+            }
+        }
     }
 
     private void Awake() {

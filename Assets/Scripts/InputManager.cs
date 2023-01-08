@@ -185,6 +185,7 @@ public class InputManager : MonoBehaviour {
             var meeple = ScriptByRaycast<Meeple>(out _);
             if (meeple != null) {
                 _selection = meeple;
+                TutorialManager.Instance.OnMeepleSelected(meeple);
                 Debug.Log("Selected");
             } else {
                 _selection = null;

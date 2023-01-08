@@ -2,11 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class SeedsManager : MonoBehaviour {
     [SerializeField] private Transform[] seedSpawns = null;
     [SerializeField] private PricesScriptableObject prices = null;
-    private Seeds[] seeds = null;
+    public Seeds[] Seeds { get; private set; } = null;
 
     public static SeedsManager Instance { get; private set; }
 
@@ -15,11 +16,11 @@ public class SeedsManager : MonoBehaviour {
             Destroy(gameObject);
         }
         Instance = this;
-        seeds = new Seeds[seedSpawns.Length];
+        Seeds = new Seeds[seedSpawns.Length];
     }
 
     public bool IsFull() {
-        foreach (var status in seeds) {
+        foreach (var status in Seeds) {
             if (status is null) {
                 return false;
             }
@@ -35,7 +36,7 @@ public class SeedsManager : MonoBehaviour {
         Debug.Assert(!IsFull());
         var possibleIndices = new List<int>();
         for (int i = 0; i < seedSpawns.Length; ++i) {
-            if (seeds[i] is null) {
+            if (Seeds[i] is null) {
                 possibleIndices.Add(i);
             }
         }
@@ -45,9 +46,9 @@ public class SeedsManager : MonoBehaviour {
         var prefab = PrefabManager.Instance.seedsPrefabs[plantType];
         var spawnedObject = GameObject.Instantiate(prefab, seedSpawns[index].position, Quaternion.identity);
         var seedsScript = spawnedObject.GetComponent<Seeds>();
-        seeds[index] = seedsScript;
+        Seeds[index] = seedsScript;
         seedsScript.PickedUpCallback = carryable => {
-            seeds[index] = null;
+            Seeds[index] = null;
             carryable.PickedUpCallback = null;
         };
     }

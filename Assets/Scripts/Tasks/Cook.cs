@@ -40,6 +40,7 @@ namespace Tasks {
 
         protected override void OnFinish() {
             _pot.Cook(_ingredients);
+            TutorialManager.Instance.OnCookingFinished(_pot);
         }
     }
 }

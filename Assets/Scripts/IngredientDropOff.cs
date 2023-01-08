@@ -60,6 +60,7 @@ public class IngredientDropOff : MonoBehaviour {
             DetachItem(carryable);
             carryable.PickedUpCallback = null;
         };
+        TutorialManager.Instance.OnIngredientDelivered(this);
         return true;
     }
 

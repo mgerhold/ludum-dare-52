@@ -11,6 +11,7 @@
             _target.OnPickedUp();
             meeple.PickupItem(_target);
             _wasExecuted = true;
+            TutorialManager.Instance.OnPickedUpItem(_target);
         }
 
         public override bool HasFinished() {
