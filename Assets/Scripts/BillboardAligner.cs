@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class BillboardAligner : MonoBehaviour {
     void Update() {
-        transform.LookAt(Camera.main.transform.position);
+        var cameraForward = Camera.main.transform.forward;
+        transform.LookAt(transform.position - cameraForward);
     }
 }

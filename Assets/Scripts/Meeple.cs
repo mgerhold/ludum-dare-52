@@ -65,16 +65,19 @@ public class Meeple : MonoBehaviour {
     private void TryStartNextTask() {
         if (_currentTask is null && _tasks.Any()) {
             _currentTask = _tasks.Dequeue();
-            _currentTask.Execute();
         } else {
             Debug.Log($"No task to execute ({_tasks.Count} in queue)");
         }
     }
 
     private void Update() {
-        if (_currentTask is not null && _currentTask.HasFinished()) {
-            _currentTask = null;
-            TryStartNextTask();
+        if (_currentTask is not null) {
+            if (_currentTask.HasFinished()) {
+                _currentTask = null;
+                TryStartNextTask();
+            } else {
+                _currentTask.Execute();
+            }
         }
     }
 }

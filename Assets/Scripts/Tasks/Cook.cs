@@ -1,33 +1,45 @@
-﻿using UnityEngine;
+﻿using Unity.VisualScripting;
+using UnityEngine;
 
 namespace Tasks {
-    public class Cook : Task {
+    public class Cook : TimedTask {
         private Pot _pot;
-        private bool _hasTriedToCook = false;
+        private PlantType[] _ingredients = null;
+
+        private IngredientDropOff _dropOff;
 
         public Cook(Meeple meeple, Pot pot) : base(meeple) {
             _pot = pot;
+            _dropOff = _pot.ingredientDropOff;
         }
 
-        public override void Execute() {
-            _hasTriedToCook = true;
+        protected override float TaskDuration() {
+            return 6f;
+        }
+
+        protected override bool CanStartExecution() {
             if (!_pot.CanCook()) {
                 // todo: show error message
                 Debug.LogError("spawn location is blocked");
-                return;
+                return false;
             }
-            var dropOff = _pot.ingredientDropOff;
-            if (dropOff.IsEmpty()) {
+
+            if (_dropOff.IsEmpty()) {
                 // todo: show error message
                 Debug.LogError("cannot cook without ingredients");
-                return;
+                return false;
             }
-            var ingredients = dropOff.TakeAllIngredients();
-            _pot.Cook(ingredients);
+
+            return true;
         }
 
-        public override bool HasFinished() {
-            return _hasTriedToCook;
+        protected override void OnStart() {
+            // only take the ingredients out of the drop off
+            _ingredients = _dropOff.TakeAllIngredients();
+        }
+
+        protected override void OnFinish() {
+            _pot.Cook(_ingredients);
         }
     }
 }
