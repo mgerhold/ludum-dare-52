@@ -6,38 +6,6 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class Order {
-    public float spawnTime;
-    public List<PlantType> ingredients;
-    public Customer customer = null;
-    public Dish targetDish = null;
-    public bool fulfilled = false;
-
-    public bool AcceptsDish(Dish dish) {
-        var providedIngredients = dish.ingredients.ToList();
-        foreach (var desiredIngredient in ingredients) {
-            bool foundIngredient = false;
-            for (int i = 0; i < providedIngredients.Count; ++i) {
-                if (providedIngredients[i] == desiredIngredient) {
-                    providedIngredients.RemoveAt(i);
-                    foundIngredient = true;
-                    break;
-                }
-            }
-            if (!foundIngredient) {
-                return false;
-            }
-        }
-        return providedIngredients.Count == 0;
-    }
-
-    public long MoneyValue() {
-        var elapsedTime = Time.time - spawnTime;
-        Debug.LogWarning($"elapsed time {elapsedTime}");
-        return ingredients.Count * 5 + Mathf.RoundToInt(60f * Mathf.Pow(0.8f, elapsedTime));
-    }
-}
-
 public class OrderQueueManager : MonoBehaviour {
     [SerializeField] private Transform[] customerSpawnLocations = null;
     [SerializeField] private Transform[] customerLeaveLocations = null;
@@ -46,6 +14,8 @@ public class OrderQueueManager : MonoBehaviour {
     private float timeOfNextOrder;
 
     private const float DishDistanceThreshold = 1f;
+    private const float MinMaxWaitTime = 10f;
+    private const float MaxMaxWaitTime = 30f;
 
     public List<Order> Orders { get; private set; } = new();
 
@@ -100,13 +70,7 @@ public class OrderQueueManager : MonoBehaviour {
     }
 
     private void Update() {
-        if (Time.time >= timeOfNextOrder) {
-            Orders.Add(new Order {
-                spawnTime = Time.time + 15f,
-                ingredients = GetRandomIngredients(),
-            });
-            SetTimeOfNextOrder();
-        }
+        TryCreateNewOrder();
 
         var ordersToDelete = new List<Order>();
 
@@ -122,6 +86,16 @@ public class OrderQueueManager : MonoBehaviour {
                     .GetComponent<Customer>();
                 var navMeshAgent = order.customer.GetComponent<NavMeshAgent>();
                 navMeshAgent.SetDestination(customerWaitLocation.position);
+                isCustomerOnMap = true;
+            }
+
+            var waitTime = Time.time - order.spawnTime;
+            if (isCustomerOnMap && waitTime >= order.maxWaitTime) {
+                // wait time exceeded
+                ++FrustratedCustomersManager.Instance.Count;
+                LeaveMap(order);
+                ordersToDelete.Add(order);
+                continue;
             }
 
             if (order.fulfilled) {
@@ -147,11 +121,8 @@ public class OrderQueueManager : MonoBehaviour {
                     order.targetDish = null;
                     order.fulfilled = true;
 
-                    // todo: rating...
                     MoneyManager.Instance.Money += order.MoneyValue();
-                    var leaveLocation =
-                        customerLeaveLocations[UnityEngine.Random.Range(0, customerLeaveLocations.Length)];
-                    order.customer.GetComponent<NavMeshAgent>().SetDestination(leaveLocation.position);
+                    LeaveMap(order);
                     ordersToDelete.Add(order);
                 }
             }
@@ -173,6 +144,23 @@ public class OrderQueueManager : MonoBehaviour {
         foreach (var orderToDelete in ordersToDelete) {
             var successfullyRemoved = Orders.Remove(orderToDelete);
             Debug.Assert(successfullyRemoved);
+        }
+    }
+
+    private void LeaveMap(Order order) {
+        var leaveLocation =
+            customerLeaveLocations[UnityEngine.Random.Range(0, customerLeaveLocations.Length)];
+        order.customer.GetComponent<NavMeshAgent>().SetDestination(leaveLocation.position);
+    }
+
+    private void TryCreateNewOrder() {
+        if (Time.time >= timeOfNextOrder) {
+            Orders.Add(new Order {
+                spawnTime = Time.time + 15f,
+                ingredients = GetRandomIngredients(),
+                maxWaitTime = UnityEngine.Random.Range(MinMaxWaitTime, MaxMaxWaitTime),
+            });
+            SetTimeOfNextOrder();
         }
     }
 }

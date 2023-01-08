@@ -29,4 +29,11 @@ public class GameManager : MonoBehaviour {
         Meeples.Add(GameObject.Instantiate(PrefabManager.Instance.meeplePrefab, position,
             Quaternion.identity).GetComponentInChildren<Meeple>());
     }
+
+    private void Update() {
+        if (FrustratedCustomersManager.Instance.GameOver) {
+            Debug.LogError("GAME OVER");
+            // todo: show message
+        }
+    }
 }
