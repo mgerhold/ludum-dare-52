@@ -36,6 +36,7 @@ namespace Tasks {
         protected override void OnStart() {
             // only take the ingredients out of the drop off
             _ingredients = _dropOff.TakeAllIngredients();
+            _pot.PlayCookingSound();
         }
 
         protected override void OnFinish() {

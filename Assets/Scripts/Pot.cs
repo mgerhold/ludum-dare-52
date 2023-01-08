@@ -5,10 +5,15 @@ using UnityEngine;
 public class Pot : TaskTarget {
     public IngredientDropOff ingredientDropOff = null;
     [SerializeField] private Transform dishSpawnLocation = null;
+    [SerializeField] private AudioClipPlayer cookingSoundPlayer = null;
     private bool _spawnLocationOccupied = false;
 
     public bool CanCook() {
         return !_spawnLocationOccupied;
+    }
+
+    public void PlayCookingSound() {
+        cookingSoundPlayer.PlaySound();
     }
 
     public void Cook(PlantType[] ingredients) {

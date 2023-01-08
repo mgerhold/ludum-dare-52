@@ -6,6 +6,10 @@ namespace Tasks {
             return 3f;
         }
 
+        protected override void OnStart() {
+            meeple.PlayTillingSound();
+        }
+
         protected override void OnFinish() {
             GameObject.Instantiate(PrefabManager.Instance.tilledGroundPrefab, TargetPosition,
                 Quaternion.identity);

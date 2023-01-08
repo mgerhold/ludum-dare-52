@@ -10,6 +10,12 @@ public class Meeple : MonoBehaviour {
     private Task _currentTask = null;
     private Carryable _currentItem = null;
     [SerializeField] private Transform _itemTransform = null;
+    [SerializeField] private AudioClipPlayer dropSoundPlayer = null;
+    [SerializeField] private AudioClipPlayer tillingSoundPlayer = null;
+
+    public void PlayTillingSound() {
+        tillingSoundPlayer.PlaySound();
+    }
 
     public void EnqueueTask(Task task) {
         _tasks.Enqueue(task);
@@ -31,6 +37,7 @@ public class Meeple : MonoBehaviour {
             var oldPosition = _currentItem.transform.position;
             oldPosition.y = 0f;
             _currentItem.transform.position = oldPosition;
+            dropSoundPlayer.PlaySound();
         }
     }
 
@@ -39,6 +46,7 @@ public class Meeple : MonoBehaviour {
         _currentItem.transform.parent = null;
         var result = _currentItem;
         _currentItem = null;
+        dropSoundPlayer.PlaySound();
         return result;
     }
 
@@ -46,6 +54,7 @@ public class Meeple : MonoBehaviour {
         Debug.Assert(_currentItem is not null);
         GameObject.Destroy(_currentItem.gameObject);
         _currentItem = null;
+        dropSoundPlayer.PlaySound();
     }
 
     public Carryable CurrentItem() {

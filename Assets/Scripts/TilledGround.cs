@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class TilledGround : Ground {
+    [SerializeField] private AudioClipPlayer growthSoundPlayer = null;
+    
     public Plant Plant { get; private set; }
 
     public void PlantSeed(PlantType plantType) {
@@ -17,6 +19,7 @@ public class TilledGround : Ground {
     private void Update() {
         if (Plant is not null && Plant.IsFullyGrown() && !Plant.IsCarryable()) {
             Debug.Log("Plant can be harvested");
+            growthSoundPlayer.PlaySound();
             var carryable = Plant.MakeCarryable();
             carryable.PickedUpCallback = plant => {
                 // plant was harvested

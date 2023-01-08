@@ -95,6 +95,7 @@ public class OrderQueueManager : MonoBehaviour {
                 ++FrustratedCustomersManager.Instance.Count;
                 LeaveMap(order);
                 ordersToDelete.Add(order);
+                order.customer.PlayFailureSound();
                 continue;
             }
 
@@ -120,6 +121,7 @@ public class OrderQueueManager : MonoBehaviour {
                     order.targetDish.OnPickedUp();
                     order.targetDish = null;
                     order.fulfilled = true;
+                    order.customer.PlayMoneySound();
 
                     MoneyManager.Instance.Money += order.MoneyValue();
                     LeaveMap(order);
