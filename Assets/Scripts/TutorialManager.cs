@@ -62,7 +62,8 @@ public class TutorialManager : MonoBehaviour {
 
     public void OnTillingCompleted() {
         if (_state == TutorialState.WaitForTilling) {
-            ShowTutorialText(SeedsManager.Instance.Seeds.First().transform.position,
+            ShowTutorialText(
+                SeedsManager.Instance.Seeds.First(seeds => seeds is not null).transform.position,
                 "Right-click on some seeds to grab them.");
             _state = TutorialState.GrabSeeds;
         }

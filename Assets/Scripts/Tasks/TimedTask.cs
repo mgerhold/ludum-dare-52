@@ -7,9 +7,7 @@ namespace Tasks {
         private bool _hasFinished = false;
         private ProgressBar _progressBar = null;
 
-        protected TimedTask(Meeple meeple) : base(meeple) {
-            _progressBar = meeple.GetComponentInChildren<ProgressBar>();
-        }
+        protected TimedTask(Meeple meeple) : base(meeple) { }
 
         protected abstract float TaskDuration();
 
@@ -53,6 +51,7 @@ namespace Tasks {
                 if (CanStartExecution()) {
                     _hasStarted = true;
                     _startTime = Time.time;
+                    _progressBar = meeple.GetComponentInChildren<ProgressBar>();
                     SetProgressBarVisibility(true);
                     OnStart();
                 } else {
