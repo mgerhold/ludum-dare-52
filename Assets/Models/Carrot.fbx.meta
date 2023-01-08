@@ -1,24 +1,14 @@
 fileFormatVersion: 2
-guid: 670d2d5a00b52264dbe5d5fcd17c04e4
+guid: 51493ca03d782b4429941cb72f61fc3b
 ModelImporter:
   serializedVersion: 21300
   internalIDToNameTable: []
-  externalObjects:
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Base
-    second: {fileID: 2100000, guid: 7f337922b1b90584ea35723f0d6c54a7, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Label
-    second: {fileID: 2100000, guid: db6031c2e4350cf42a43187f2dca824b, type: 2}
+  externalObjects: {}
   materials:
     materialImportMode: 2
     materialName: 0
     materialSearch: 1
-    materialLocation: 0
+    materialLocation: 1
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
