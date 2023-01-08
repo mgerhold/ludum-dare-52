@@ -34,5 +34,8 @@ public class GameManager : MonoBehaviour {
         if (FrustratedCustomersManager.Instance.GameOver) {
             GameOver.Instance.Show();
         }
+        if (Input.GetKeyDown(KeyCode.Escape)) {
+            IngameMenuManager.Instance.Show();
+        }
     }
 }
