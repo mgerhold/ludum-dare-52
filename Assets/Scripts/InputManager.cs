@@ -182,11 +182,18 @@ public class InputManager : MonoBehaviour {
     private void HandleSelection() {
         if (Input.GetMouseButtonDown(0)) {
             var meeple = ScriptByRaycast<Meeple>(out _);
-            if (meeple != null) {
+            if (meeple is not null) {
+                if (_selection is not null) {
+                    _selection.HideSelectionMarker();
+                }
                 _selection = meeple;
                 TutorialManager.Instance.OnMeepleSelected(meeple);
+                meeple.ShowSelectionMarker();
                 Debug.Log("Selected");
             } else {
+                if (_selection is not null) {
+                    _selection.HideSelectionMarker();
+                }
                 _selection = null;
                 Debug.Log("Cleared selection");
             }

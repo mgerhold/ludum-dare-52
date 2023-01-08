@@ -9,12 +9,21 @@ public class Meeple : MonoBehaviour {
     private readonly Queue<Task> _tasks = new();
     private Task _currentTask = null;
     private Carryable _currentItem = null;
+    [SerializeField] private GameObject selectionMarker = null;
     [SerializeField] private Transform _itemTransform = null;
     [SerializeField] private AudioClipPlayer dropSoundPlayer = null;
     [SerializeField] private AudioClipPlayer tillingSoundPlayer = null;
 
     public void PlayTillingSound() {
         tillingSoundPlayer.PlaySound();
+    }
+
+    public void ShowSelectionMarker() {
+        selectionMarker.SetActive(true);
+    }
+
+    public void HideSelectionMarker() {
+        selectionMarker.SetActive(false);
     }
 
     public void EnqueueTask(Task task) {

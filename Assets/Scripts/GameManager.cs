@@ -26,8 +26,11 @@ public class GameManager : MonoBehaviour {
     }
 
     public void SpawnMeeple(Vector3 position) {
-        Meeples.Add(GameObject.Instantiate(PrefabManager.Instance.meeplePrefab, position,
-            Quaternion.identity).GetComponentInChildren<Meeple>());
+        var meeple = GameObject.Instantiate(PrefabManager.Instance.meeplePrefab, position,
+            Quaternion.identity).GetComponentInChildren<Meeple>();
+        meeple.HideSelectionMarker();
+        Meeples.Add(meeple);
+        
     }
 
     private void Update() {
